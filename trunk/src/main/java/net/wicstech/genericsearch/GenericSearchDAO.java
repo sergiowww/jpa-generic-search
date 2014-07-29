@@ -123,9 +123,6 @@ public class GenericSearchDAO extends AbstractDao {
 		String[] selectFields = selectFieldsAnnotation.value();
 		for (String nestedProperties : selectFields) {
 			FieldMetadata metadata = newFieldMetadata(entityType, from, nestedProperties);
-			if (metadata.isDistinct()) {
-				criteria.distinct(metadata.isDistinct());
-			}
 			Selection<Object> selection = metadata.getPath(nestedProperties).alias(nestedProperties);
 			selecoes.add(selection);
 		}
@@ -147,6 +144,7 @@ public class GenericSearchDAO extends AbstractDao {
 		List<Predicate> predicates = new ArrayList<Predicate>();
 		for (FieldMetadata fieldMetadata : metadados) {
 			String[] entityProperty = fieldMetadata.getEntityProperty();
+			List<Predicate> orPredicates = new ArrayList<Predicate>();
 			for (String property : entityProperty) {
 				if (fieldMetadata.isDistinct()) {
 					criteria.distinct(fieldMetadata.isDistinct());
@@ -154,12 +152,21 @@ public class GenericSearchDAO extends AbstractDao {
 				Object filterValue = fieldMetadata.getPropertyValue();
 				Path<Object> restrictionProperty = fieldMetadata.getPath(property);
 				Predicate predicate = filterRestriction(restrictionProperty, filterValue, fieldMetadata.getFilterParameter().value());
-				predicates.add(predicate);
+				orPredicates.add(predicate);
+			}
+			if (orPredicates.size() > NumberUtils.INTEGER_ONE) {
+				predicates.add(criteriaBuilder().or(toArray(orPredicates)));
+			} else {
+				predicates.addAll(orPredicates);
 			}
 		}
 		if (!predicates.isEmpty()) {
-			criteria.where(predicates.toArray(new Predicate[predicates.size()]));
+			criteria.where(toArray(predicates));
 		}
+	}
+
+	private Predicate[] toArray(List<Predicate> predicates) {
+		return predicates.toArray(new Predicate[predicates.size()]);
 	}
 
 	private <T> Predicate filterRestriction(Path<T> path, Object filterValue, FilterType filterType) {
@@ -176,9 +183,18 @@ public class GenericSearchDAO extends AbstractDao {
 		if (FilterType.EQUALS.equals(filterType)) {
 			return criteriaBuilder().equal(path, filterValue);
 		}
-		return null;
+		throw new IllegalArgumentException("FilterType " + filterType + " não reconhecido!");
 	}
 
+	/**
+	 * Buscar metadados para serem filtrados na consulta.
+	 * 
+	 * @param searchObject
+	 * @param entityType
+	 * @param from
+	 * @param parentEntityPath
+	 * @return
+	 */
 	private List<FieldMetadata> getFieldMetadata(Serializable searchObject, Class<?> entityType, Root<?> from, String[] parentEntityPath) {
 		List<FieldMetadata> fieldMetadata = new ArrayList<FieldMetadata>();
 		Class<? extends Serializable> searchObjectClass = searchObject.getClass();

@@ -44,7 +44,7 @@ public class PesquisaProfissionalDTO implements Serializable {
 	@FilterParameter(entityProperty = "cursos", value = FilterType.EQUALS)
 	private SerieAnoCurso curso;
 
-	@FilterParameter(value = FilterType.EQUALS)
+	@FilterParameter(FilterType.EQUALS)
 	private Boolean efetivo;
 
 	/**
@@ -56,13 +56,13 @@ public class PesquisaProfissionalDTO implements Serializable {
 	/**
 	 * Filtrar para o início a partir do que foi informado.
 	 */
-	@FilterParameter(entityProperty = "disponibilidades.id.inicio", value = FilterType.LESS_THAN_OR_EQUAL)
+	@FilterParameter(entityProperty = "disponibilidades.id.inicio", value = FilterType.LESS_THAN_OR_EQUAL, distinct = true)
 	private Date inicio;
 
 	/**
 	 * Filtrar pelo término da disponibilidade.
 	 */
-	@FilterParameter(entityProperty = "disponibilidades.fim", value = FilterType.GREATER_THAN_OR_EQUAL)
+	@FilterParameter(entityProperty = "disponibilidades.fim", value = FilterType.GREATER_THAN_OR_EQUAL, distinct = true)
 	private Date fim;
 
 	@FilterParameter(value = FilterType.ILIKE)

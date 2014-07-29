@@ -14,13 +14,12 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 
-import net.wicstech.genericsearch.GenericSearchDAO;
-import net.wicstech.genericsearch.PesquisaPaginadaDTO;
 import net.wicstech.genericsearch.dto.EditalDTO;
 import net.wicstech.genericsearch.dto.PesquisaProfissionalDTO;
 import net.wicstech.genericsearch.entidadestest.BolsaCorretoraCorretor;
 import net.wicstech.genericsearch.entidadestest.Corretor;
 import net.wicstech.genericsearch.entidadestest.Corretora;
+import net.wicstech.genericsearch.entidadestest.Disciplina;
 import net.wicstech.genericsearch.entidadestest.Disponibilidade;
 import net.wicstech.genericsearch.entidadestest.Edital;
 import net.wicstech.genericsearch.entidadestest.Profissional;
@@ -73,7 +72,7 @@ public class GenericSearchDAOTest extends AbstractTransactionalJUnit4SpringConte
 		dto.setDataInicio(getDate("06/10/2005"));
 		dto.setDataFim(getDate("08/10/2005"));
 
-		PesquisaPaginadaDTO paginacao = new PesquisaPaginadaDTO(0, 10);
+		PesquisaPaginadaDTO paginacao = new PesquisaPaginadaDTO(0, 0);
 		List<Edital> resultado = genericSearchDAO.list(Edital.class, dto, paginacao);
 		assertEquals(1, genericSearchDAO.size(Edital.class, dto));
 		assertEquals(1, resultado.size());
@@ -121,7 +120,7 @@ public class GenericSearchDAOTest extends AbstractTransactionalJUnit4SpringConte
 		dao.salvar(situacao1, situacao2, situacao3);
 
 		SituacaoCorretorCorretora parametros = new SituacaoCorretorCorretora();
-		PesquisaPaginadaDTO paginacao = new PesquisaPaginadaDTO(0, 10);
+		PesquisaPaginadaDTO paginacao = new PesquisaPaginadaDTO(0, 0);
 		paginacao.setAscending(true);
 		paginacao.setSortProperty("tipoSituacao");
 		List<SituacaoCorretorCorretora> resultado = genericSearchDAO.list(SituacaoCorretorCorretora.class, parametros, paginacao);
@@ -190,7 +189,7 @@ public class GenericSearchDAOTest extends AbstractTransactionalJUnit4SpringConte
 
 		TipoDocumento tipoDocumentoPesquisa = new TipoDocumento();
 		tipoDocumentoPesquisa.setNome("eduardo");
-		PesquisaPaginadaDTO paginacao = new PesquisaPaginadaDTO(0, 10);
+		PesquisaPaginadaDTO paginacao = new PesquisaPaginadaDTO(0, 0);
 
 		List<TipoDocumento> resultado = genericSearchDAO.list(TipoDocumento.class, tipoDocumentoPesquisa, paginacao);
 		assertEquals(1, genericSearchDAO.size(TipoDocumento.class, tipoDocumentoPesquisa));
@@ -218,7 +217,7 @@ public class GenericSearchDAOTest extends AbstractTransactionalJUnit4SpringConte
 		corretorPesquisa.setCpf(CPF_TESTE1);
 		corretorPesquisa.setSituacaoCorretorCorretora(dao.getSituacaoByDescricao(SITUACAO_ATIVO));
 		pesquisa.setCorretor(corretorPesquisa);
-		List<BolsaCorretoraCorretor> resultado = genericSearchDAO.list(BolsaCorretoraCorretor.class, pesquisa, new PesquisaPaginadaDTO(0, 10));
+		List<BolsaCorretoraCorretor> resultado = genericSearchDAO.list(BolsaCorretoraCorretor.class, pesquisa, new PesquisaPaginadaDTO(0, 0));
 		assertEquals(1, resultado.size());
 		BolsaCorretoraCorretor bolsaConferir = resultado.get(0);
 		assertNotNull(bolsaConferir.getCorretor());
@@ -248,19 +247,18 @@ public class GenericSearchDAOTest extends AbstractTransactionalJUnit4SpringConte
 		regiao2.setCidade("Taguatinga");
 		regiao2.setDescricao("DF");
 
-		dao.salvar(curso1, curso2, regiao1, regiao2);
+		Disciplina disciplina1 = new Disciplina();
+		disciplina1.setDescricao("Disciplina 1");
 
-		String celular = "96013799";
-		String telefone = "334634522";
-		String email = "sergiowww@gmail.com";
-		boolean efetivo = true;
-		String nome = "Sergio";
-		String horaInicio = "18:00";
-		String horaFim = "20:00";
+		Disciplina disciplina2 = new Disciplina();
+		disciplina2.setDescricao("Disciplina 2");
 
-		gravarProfissional(curso1, regiao1, celular, telefone, email, efetivo, nome, horaInicio, horaFim);
+		dao.salvar(curso1, curso2, regiao1, regiao2, disciplina1, disciplina2);
 
-		PesquisaProfissionalDTO dto = new PesquisaProfissionalDTO();
+		gravarProfissional(curso1, regiao1, disciplina1, "96013799", "334634522", "sergiowww@gmail.com", true, "Sergio", "18:00", "20:00", Calendar.MONDAY);
+
+		gravarProfissional(curso2, regiao2, disciplina2, "99474061", "334634223", "sergiowww@email.it", true, "João", "14:00", "15:00", Calendar.SATURDAY);
+
 		// dto.setCurso(curso);
 		// dto.setDiaSemana(diaSemana);
 		// dto.setDisciplina(disciplina);
@@ -272,14 +270,65 @@ public class GenericSearchDAOTest extends AbstractTransactionalJUnit4SpringConte
 		// dto.setRegiao(regiao1);
 		// dto.setTelefones(telefones);
 
+		PesquisaProfissionalDTO dto = new PesquisaProfissionalDTO();
 		dto.setInicio(getTime("21:00"));
 		dto.setFim(getTime("22:00"));
-		List<Profissional> resultado = genericSearchDAO.list(Profissional.class, dto, new PesquisaPaginadaDTO(0, 10));
+		List<Profissional> resultado = genericSearchDAO.list(Profissional.class, dto, new PesquisaPaginadaDTO(0, 0));
 		assertTrue(resultado.isEmpty());
+		assertEquals(0, genericSearchDAO.size(Profissional.class, dto));
+
+		dto = new PesquisaProfissionalDTO();
+		dto.setInicio(getTime("19:00"));
+		dto.setFim(getTime("20:00"));
+		resultado = genericSearchDAO.list(Profissional.class, dto, new PesquisaPaginadaDTO(0, 0));
+		assertEquals(1, resultado.size());
+		assertEquals(1, genericSearchDAO.size(Profissional.class, dto));
+		assertEquals("Sergio", resultado.get(0).getNome());
+
+		dto = new PesquisaProfissionalDTO();
+		resultado = genericSearchDAO.list(Profissional.class, dto, new PesquisaPaginadaDTO(0, 0));
+		assertEquals(2, resultado.size());
+
+		dto = new PesquisaProfissionalDTO();
+		dto.setRegiao(regiao2);
+		resultado = genericSearchDAO.list(Profissional.class, dto, new PesquisaPaginadaDTO(0, 0));
+		assertEquals(1, resultado.size());
+		assertEquals("João", resultado.get(0).getNome());
+
+		dto = new PesquisaProfissionalDTO();
+		dto.setCurso(curso1);
+		resultado = genericSearchDAO.list(Profissional.class, dto, new PesquisaPaginadaDTO(0, 0));
+		assertEquals(1, resultado.size());
+		assertEquals("Sergio", resultado.get(0).getNome());
+
+		dto = new PesquisaProfissionalDTO();
+		dto.setDisciplina(disciplina2);
+		resultado = genericSearchDAO.list(Profissional.class, dto, new PesquisaPaginadaDTO(0, 0));
+		assertEquals(1, resultado.size());
+		assertEquals("João", resultado.get(0).getNome());
+
+		dto = new PesquisaProfissionalDTO();
+		dto.setDisciplina(disciplina1);
+		resultado = genericSearchDAO.list(Profissional.class, dto, new PesquisaPaginadaDTO(0, 0));
+		assertEquals(1, resultado.size());
+		assertEquals("Sergio", resultado.get(0).getNome());
+
+		dto = new PesquisaProfissionalDTO();
+		dto.setDiaSemana(Calendar.SATURDAY);
+		resultado = genericSearchDAO.list(Profissional.class, dto, new PesquisaPaginadaDTO(0, 0));
+		assertEquals(1, resultado.size());
+		assertEquals("João", resultado.get(0).getNome());
+
+		dto = new PesquisaProfissionalDTO();
+		dto.setTelefones("334634522");
+		resultado = genericSearchDAO.list(Profissional.class, dto, new PesquisaPaginadaDTO(0, 0));
+		assertEquals(1, resultado.size());
+		assertEquals("Sergio", resultado.get(0).getNome());
 	}
 
-	private void gravarProfissional(SerieAnoCurso curso1, Regiao regiao1, String celular, String telefone, String email, boolean efetivo, String nome, String horaInicio,
-			String horaFim) throws ParseException {
+	private void gravarProfissional(SerieAnoCurso curso1, Regiao regiao1, Disciplina disciplina, String celular, String telefone, String email, boolean efetivo, String nome,
+			String horaInicio,
+			String horaFim, Integer day) throws ParseException {
 		Profissional profissional = new Profissional();
 		profissional.setCelular(celular);
 		profissional.setCelularOperadora("vivo");
@@ -296,18 +345,14 @@ public class GenericSearchDAOTest extends AbstractTransactionalJUnit4SpringConte
 		profissional.setDataHoraUltimaAtualizacao(new Date());
 		profissional.addCurso(curso1);
 		profissional.addRegiao(regiao1);
+		profissional.addDisciplina(disciplina);
 
 		dao.salvar(profissional);
-		Disponibilidade disponibilidade = new Disponibilidade(parseTime(horaInicio), parseTime(horaFim), Calendar.MONDAY);
+		Disponibilidade disponibilidade = new Disponibilidade(getTime(horaInicio), getTime(horaFim), day);
 		disponibilidade.setProfissional(profissional);
 		profissional.setDisponibilidades(new ArrayList<Disponibilidade>());
 		profissional.getDisponibilidades().add(disponibilidade);
 		dao.salvar(disponibilidade);
-	}
-
-	private Date parseTime(String inicio) throws ParseException {
-		SimpleDateFormat sdf = new SimpleDateFormat("HH:mm");
-		return sdf.parse(inicio);
 	}
 
 	private void prepararCarga(String cnpj, String cpf, String nomeResponsavel, String situacaoDescricao) {
