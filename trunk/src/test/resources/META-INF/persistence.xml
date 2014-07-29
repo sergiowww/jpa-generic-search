@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<persistence version="2.1"
+	xmlns="http://xmlns.jcp.org/xml/ns/persistence" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://xmlns.jcp.org/xml/ns/persistence http://xmlns.jcp.org/xml/ns/persistence/persistence_2_1.xsd">
+	<persistence-unit name="test-ds">
+		<provider>org.hibernate.jpa.HibernatePersistenceProvider</provider>
+		<class>net.wicstech.genericsearch.entidadestest.Edital</class>
+		<class>net.wicstech.genericsearch.entidadestest.TipoDocumento</class>
+		<class>net.wicstech.genericsearch.entidadestest.BolsaCorretoraCorretor</class>
+		<class>net.wicstech.genericsearch.entidadestest.Corretora</class>
+		<class>net.wicstech.genericsearch.entidadestest.Corretor</class>
+		<class>net.wicstech.genericsearch.entidadestest.SituacaoCorretorCorretora</class>
+		<class>net.wicstech.genericsearch.entidadestest.Disciplina</class>
+		<class>net.wicstech.genericsearch.entidadestest.Disponibilidade</class>
+		<class>net.wicstech.genericsearch.entidadestest.DisponibilidadePK</class>
+		<class>net.wicstech.genericsearch.entidadestest.Profissional</class>
+		<class>net.wicstech.genericsearch.entidadestest.Regiao</class>
+		<class>net.wicstech.genericsearch.entidadestest.SerieAnoCurso</class>
+	</persistence-unit>
+</persistence>

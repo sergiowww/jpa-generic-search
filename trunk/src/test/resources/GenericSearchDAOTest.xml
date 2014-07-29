@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+	<!-- data source local para testes -->
+	<bean class="org.hsqldb.jdbc.JDBCDataSource" id="mainDS">
+		<property name="database" value="jdbc:hsqldb:mem:test" />
+		<property name="user" value="sa" />
+		<property name="password" value="" />
+	</bean>
+	<bean class="net.wicstech.genericsearch.TestDbDAO" />
+	<bean class="net.wicstech.genericsearch.GenericSearchDAO" />
+	<bean id="transactionManager" class="org.springframework.orm.jpa.JpaTransactionManager">
+		<property name="entityManagerFactory" ref="entityManagerFactory" />
+	</bean>
+
+	<bean id="entityManagerFactory" class="org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean">
+		<property name="dataSource" ref="mainDS" />
+		<property name="persistenceUnitName" value="test-ds" />
+		<property name="jpaProperties">
+			<props>
+				<prop key="hibernate.dialect">org.hibernate.dialect.HSQLDialect</prop>
+				<prop key="hibernate.show_sql">true</prop>
+				<prop key="javax.persistence.schema-generation.database.action">drop-and-create</prop>
+			</props>
+		</property>
+	</bean>
+</beans>
