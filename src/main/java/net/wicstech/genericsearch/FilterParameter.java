@@ -39,4 +39,11 @@ public @interface FilterParameter {
 	 */
 	String[] entityProperty() default {};
 
+	/**
+	 * Colocar distinct no resultado quando esse critério for selecionado.
+	 * 
+	 * @return
+	 */
+	boolean distinct() default false;
+
 }

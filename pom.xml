@@ -89,4 +89,7 @@
 			<url>http://dfbsa40.conab.gov.br/archiva/repository/internal/</url>
 		</repository>
 	</distributionManagement>
+	<scm>
+		<url>https://jpa-generic-search.googlecode.com/svn/trunk/</url>
+	</scm>
 </project>

@@ -29,7 +29,6 @@ class FieldMetadata {
 	private final Class<?> entityType;
 	private final Root<?> from;
 	private final String[] entityProperty;
-	private boolean distinct;
 	private FilterParameter filterParameter;
 	private String searchObjectFieldName;
 	private Metamodel metamodel;
@@ -62,26 +61,26 @@ class FieldMetadata {
 
 			if (indice != ultimoIndice) {
 				currentFrom = createJoin(property, currentFrom);
-				if (isCollection && !distinct) {
-					distinct = true;
-				}
-				if (NumberUtils.INTEGER_ONE.equals(properties.length)) {
-					return new PropertyFromClause(currentFrom, property);
-				}
 				currentEntityType = getTypeOrListType(attribute);
+			} else if (isCollection) {
+				return new PropertyFromClause(createJoin(property, currentFrom), null);
 			} else {
 				return new PropertyFromClause(currentFrom, property);
 			}
 		}
-		return null;
+		throw new IllegalArgumentException("Nenhuma propriedade informada");
 	}
 
 	public <Y> Path<Y> getPath(String propertyPath) {
 		return this.<Y> getPath(getPropertyFrom(propertyPath));
 	}
 
+	@SuppressWarnings("unchecked")
 	private <Y> Path<Y> getPath(PropertyFromClause sourceInformation) {
 		String nestedPropertiesToGet = sourceInformation.getNestedPropertiesToGet();
+		if (nestedPropertiesToGet == null) {
+			return (Path<Y>) sourceInformation.getCurrentFrom();
+		}
 		From<Object, Object> currentFrom = sourceInformation.getCurrentFrom();
 		if (StringUtils.contains(nestedPropertiesToGet, PONTO)) {
 			String[] properties = nestedPropertiesToGet.split(SPLIT_NO_PONTO);
@@ -145,7 +144,7 @@ class FieldMetadata {
 	}
 
 	public boolean isDistinct() {
-		return distinct;
+		return filterParameter.distinct();
 	}
 
 	public void setSearchObjectFieldName(String searchObjectFieldName) {
@@ -160,4 +159,39 @@ class FieldMetadata {
 		return wrapper.getPropertyValue(searchObjectFieldName);
 	}
 
+	/**
+	 * Informações do nó fonte.
+	 * 
+	 * @author Sergio
+	 * 
+	 */
+	private class PropertyFromClause {
+		private From<Object, Object> currentFrom;
+		private String nestedPropertiesToGet;
+
+		/**
+		 * @param currentFrom
+		 * @param nestedPropertiesToGet
+		 */
+		public PropertyFromClause(From<Object, Object> currentFrom, String nestedPropertiesToGet) {
+			super();
+			this.currentFrom = currentFrom;
+			this.nestedPropertiesToGet = nestedPropertiesToGet;
+		}
+
+		/**
+		 * @return the currentFrom
+		 */
+		public From<Object, Object> getCurrentFrom() {
+			return this.currentFrom;
+		}
+
+		/**
+		 * @return the nestedPropertiesToGet
+		 */
+		public String getNestedPropertiesToGet() {
+			return this.nestedPropertiesToGet;
+		}
+
+	}
 }
