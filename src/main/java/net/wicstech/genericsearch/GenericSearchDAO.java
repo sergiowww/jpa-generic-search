@@ -38,7 +38,7 @@ import org.springframework.stereotype.Repository;
  * @author sergio.oliveira
  * 
  */
-@Repository
+@Repository("genericSearchDAO")
 @SuppressWarnings("unchecked")
 public class GenericSearchDAO extends AbstractDao {
 
@@ -52,8 +52,7 @@ public class GenericSearchDAO extends AbstractDao {
 		boolean modoSeletivo = parametros.getClass().isAnnotationPresent(SelectFields.class);
 		if (modoSeletivo) {
 			criteria = cb.createTupleQuery();
-		}
-		else {
+		} else {
 			criteria = cb.createQuery(entityClass);
 		}
 
@@ -117,17 +116,21 @@ public class GenericSearchDAO extends AbstractDao {
 	 * @param criteria
 	 * @param from
 	 */
-	private void processSelections(Serializable searchObject, Class<?> entityType, CriteriaQuery<?> criteria, Root<?> from) {
+	protected void processSelections(Serializable searchObject, Class<?> entityType, CriteriaQuery<?> criteria, Root<?> from) {
 		SelectFields selectFieldsAnnotation = searchObject.getClass().getAnnotation(SelectFields.class);
 		List<Selection<?>> selecoes = new ArrayList<Selection<?>>();
+		selectFields(entityType, from, selectFieldsAnnotation, selecoes);
+
+		criteria.multiselect(selecoes);
+	}
+
+	protected void selectFields(Class<?> entityType, Root<?> from, SelectFields selectFieldsAnnotation, List<Selection<?>> selecoes) {
 		String[] selectFields = selectFieldsAnnotation.value();
 		for (String nestedProperties : selectFields) {
 			FieldMetadata metadata = newFieldMetadata(entityType, from, nestedProperties);
 			Selection<Object> selection = metadata.getPath(nestedProperties).alias(nestedProperties);
 			selecoes.add(selection);
 		}
-
-		criteria.multiselect(selecoes);
 	}
 
 	/**
@@ -234,7 +237,7 @@ public class GenericSearchDAO extends AbstractDao {
 	private String[] getEntityPropertyPath(Field field, FilterParameter filterParameter, String[] parentEntityPath) {
 		String[] propertyPath = filterParameter.entityProperty();
 		if (ArrayUtils.isEmpty(propertyPath)) {
-			propertyPath = new String[] {field.getName()};
+			propertyPath = new String[] { field.getName() };
 		}
 
 		if (ArrayUtils.isNotEmpty(parentEntityPath)) {
