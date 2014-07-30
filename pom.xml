@@ -2,7 +2,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>net.wicstech</groupId>
 	<artifactId>jpa-generic-search</artifactId>
-	<version>3.0</version>
+	<version>3.0.1</version>
 	<name>JPA Generic Search</name>
 	<description>API para busca genérica utilizando JPA</description>
 	<properties>
