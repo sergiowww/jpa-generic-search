@@ -44,6 +44,40 @@ public class GenericSearchDAO extends AbstractDao {
 
 	private static final long serialVersionUID = 2858834138761219160L;
 
+	/**
+	 * Retornar um único resultado.
+	 * 
+	 * @param entityClass
+	 * @param parametros
+	 * @return
+	 */
+	public <T extends Serializable> T getSingleResult(Class<T> entityClass, Serializable parametros) {
+		List<T> resultado = list(entityClass, parametros, new PesquisaPaginadaDTO(NumberUtils.INTEGER_ZERO, NumberUtils.INTEGER_ONE));
+		if (resultado.isEmpty()) {
+			return null;
+		}
+		return resultado.get(NumberUtils.INTEGER_ZERO);
+	}
+
+	/**
+	 * Listar todas as ocorrências sem paginação.
+	 * 
+	 * @param entityClass
+	 * @param parametros
+	 * @return
+	 */
+	public <T extends Serializable> List<T> list(Class<T> entityClass, Serializable parametros) {
+		return list(entityClass, parametros, new PesquisaPaginadaDTO(NumberUtils.INTEGER_ZERO, NumberUtils.INTEGER_ZERO));
+	}
+
+	/**
+	 * Listar resultado com paginação de resultados.
+	 * 
+	 * @param entityClass
+	 * @param parametros
+	 * @param pesquisa
+	 * @return
+	 */
 	public <T extends Serializable> List<T> list(Class<T> entityClass, Serializable parametros, PesquisaPaginadaDTO pesquisa) {
 
 		CriteriaBuilder cb = criteriaBuilder();
@@ -71,6 +105,14 @@ public class GenericSearchDAO extends AbstractDao {
 		return query.getResultList();
 	}
 
+	/**
+	 * Acrescentar a ordenação do resultado.
+	 * 
+	 * @param pesquisa
+	 * @param entityType
+	 * @param criteria
+	 * @param from
+	 */
 	private <T extends Serializable> void processSorting(PesquisaPaginadaDTO pesquisa, Class<T> entityType, CriteriaQuery<?> criteria, Root<T> from) {
 		if (StringUtils.isNotBlank(pesquisa.getSortProperty())) {
 			CriteriaBuilder cb = criteriaBuilder();
@@ -124,6 +166,14 @@ public class GenericSearchDAO extends AbstractDao {
 		criteria.multiselect(selecoes);
 	}
 
+	/**
+	 * Selecionar campos da consulta.
+	 * 
+	 * @param entityType
+	 * @param from
+	 * @param selectFieldsAnnotation
+	 * @param selecoes
+	 */
 	protected void selectFields(Class<?> entityType, Root<?> from, SelectFields selectFieldsAnnotation, List<Selection<?>> selecoes) {
 		String[] selectFields = selectFieldsAnnotation.value();
 		for (String nestedProperties : selectFields) {
@@ -237,7 +287,7 @@ public class GenericSearchDAO extends AbstractDao {
 	private String[] getEntityPropertyPath(Field field, FilterParameter filterParameter, String[] parentEntityPath) {
 		String[] propertyPath = filterParameter.entityProperty();
 		if (ArrayUtils.isEmpty(propertyPath)) {
-			propertyPath = new String[] { field.getName() };
+			propertyPath = new String[] {field.getName()};
 		}
 
 		if (ArrayUtils.isNotEmpty(parentEntityPath)) {

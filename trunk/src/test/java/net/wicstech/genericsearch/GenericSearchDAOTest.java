@@ -72,8 +72,7 @@ public class GenericSearchDAOTest extends AbstractTransactionalJUnit4SpringConte
 		dto.setDataInicio(getDate("06/10/2005"));
 		dto.setDataFim(getDate("08/10/2005"));
 
-		PesquisaPaginadaDTO paginacao = new PesquisaPaginadaDTO(0, 0);
-		List<Edital> resultado = genericSearchDAO.list(Edital.class, dto, paginacao);
+		List<Edital> resultado = genericSearchDAO.list(Edital.class, dto);
 		assertEquals(1, genericSearchDAO.size(Edital.class, dto));
 		assertEquals(1, resultado.size());
 		Edital editalConferir = resultado.get(0);
@@ -81,13 +80,13 @@ public class GenericSearchDAOTest extends AbstractTransactionalJUnit4SpringConte
 		assertEquals(Integer.valueOf(4), editalConferir.getNumero());
 
 		dto.setDataInicio(getDate("04/10/2005"));
-		resultado = genericSearchDAO.list(Edital.class, dto, paginacao);
+		resultado = genericSearchDAO.list(Edital.class, dto);
 		assertEquals(2, genericSearchDAO.size(Edital.class, dto));
 		assertEquals(2, resultado.size());
 
 		dto.setDataInicio(getDate("01/10/2005"));
 		dto.setDataFim(getDate("03/10/2005"));
-		resultado = genericSearchDAO.list(Edital.class, dto, paginacao);
+		resultado = genericSearchDAO.list(Edital.class, dto);
 		assertEquals(0, genericSearchDAO.size(Edital.class, dto));
 		assertEquals(0, resultado.size());
 	}
@@ -197,9 +196,12 @@ public class GenericSearchDAOTest extends AbstractTransactionalJUnit4SpringConte
 		TipoDocumento tipoDocumentoConferir = resultado.get(0);
 		assertEquals("Sergio Eduardo", tipoDocumentoConferir.getNome());
 		assertEquals("Esta é uma descrição", tipoDocumentoConferir.getDescricao());
+		assertNotNull(genericSearchDAO.getSingleResult(TipoDocumento.class, tipoDocumentoPesquisa));
+		assertEquals(tipoDocumentoConferir, genericSearchDAO.getSingleResult(TipoDocumento.class, tipoDocumentoPesquisa));
 
 		TipoDocumento nenhumParametroPreenchido = new TipoDocumento();
 		resultado = genericSearchDAO.list(TipoDocumento.class, nenhumParametroPreenchido, paginacao);
+		assertNotNull(genericSearchDAO.getSingleResult(TipoDocumento.class, nenhumParametroPreenchido));
 		assertEquals(2, resultado.size());
 		assertEquals(2, genericSearchDAO.size(TipoDocumento.class, nenhumParametroPreenchido));
 
@@ -225,6 +227,7 @@ public class GenericSearchDAOTest extends AbstractTransactionalJUnit4SpringConte
 
 		corretorPesquisa.setSituacaoCorretorCorretora(dao.getSituacaoByDescricao(SITUACAO_INATIVO));
 		resultado = genericSearchDAO.list(BolsaCorretoraCorretor.class, pesquisa, new PesquisaPaginadaDTO(0, 5));
+		assertNull(genericSearchDAO.getSingleResult(BolsaCorretoraCorretor.class, pesquisa));
 		assertEquals(0, resultado.size());
 		assertEquals(0, genericSearchDAO.size(BolsaCorretoraCorretor.class, pesquisa));
 
