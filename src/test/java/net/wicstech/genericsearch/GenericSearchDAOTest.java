@@ -119,7 +119,7 @@ public class GenericSearchDAOTest extends AbstractTransactionalJUnit4SpringConte
 		dao.salvar(situacao1, situacao2, situacao3);
 
 		SituacaoCorretorCorretora parametros = new SituacaoCorretorCorretora();
-		PesquisaPaginadaDTO paginacao = new PesquisaPaginadaDTO(0, 0);
+		PagedSearchNavigation paginacao = new PagedSearchNavigation(0, 0);
 		paginacao.setAscending(true);
 		paginacao.setSortProperty("tipoSituacao");
 		List<SituacaoCorretorCorretora> resultado = genericSearchDAO.list(SituacaoCorretorCorretora.class, parametros, paginacao);
@@ -159,7 +159,7 @@ public class GenericSearchDAOTest extends AbstractTransactionalJUnit4SpringConte
 		assertNotNull(situacaoGravada);
 		assertEquals(assertTipo, situacaoGravada.getTipoSituacao());
 
-		List<SituacaoCorretorCorretora> resultado = genericSearchDAO.list(SituacaoCorretorCorretora.class, new SituacaoCorretorCorretora(), new PesquisaPaginadaDTO(0, 5));
+		List<SituacaoCorretorCorretora> resultado = genericSearchDAO.list(SituacaoCorretorCorretora.class, new SituacaoCorretorCorretora(), new PagedSearchNavigation(0, 5));
 		assertEquals(1, resultado.size());
 		SituacaoCorretorCorretora situacaoComSelecaoDeCampos = resultado.get(0);
 		assertNotNull(situacaoComSelecaoDeCampos.getId());
@@ -188,7 +188,7 @@ public class GenericSearchDAOTest extends AbstractTransactionalJUnit4SpringConte
 
 		TipoDocumento tipoDocumentoPesquisa = new TipoDocumento();
 		tipoDocumentoPesquisa.setNome("eduardo");
-		PesquisaPaginadaDTO paginacao = new PesquisaPaginadaDTO(0, 0);
+		PagedSearchNavigation paginacao = new PagedSearchNavigation(0, 0);
 
 		List<TipoDocumento> resultado = genericSearchDAO.list(TipoDocumento.class, tipoDocumentoPesquisa, paginacao);
 		assertEquals(1, genericSearchDAO.size(TipoDocumento.class, tipoDocumentoPesquisa));
@@ -219,14 +219,14 @@ public class GenericSearchDAOTest extends AbstractTransactionalJUnit4SpringConte
 		corretorPesquisa.setCpf(CPF_TESTE1);
 		corretorPesquisa.setSituacaoCorretorCorretora(dao.getSituacaoByDescricao(SITUACAO_ATIVO));
 		pesquisa.setCorretor(corretorPesquisa);
-		List<BolsaCorretoraCorretor> resultado = genericSearchDAO.list(BolsaCorretoraCorretor.class, pesquisa, new PesquisaPaginadaDTO(0, 0));
+		List<BolsaCorretoraCorretor> resultado = genericSearchDAO.list(BolsaCorretoraCorretor.class, pesquisa, new PagedSearchNavigation(0, 0));
 		assertEquals(1, resultado.size());
 		BolsaCorretoraCorretor bolsaConferir = resultado.get(0);
 		assertNotNull(bolsaConferir.getCorretor());
 		assertEquals(CPF_TESTE1, bolsaConferir.getCorretor().getCpf());
 
 		corretorPesquisa.setSituacaoCorretorCorretora(dao.getSituacaoByDescricao(SITUACAO_INATIVO));
-		resultado = genericSearchDAO.list(BolsaCorretoraCorretor.class, pesquisa, new PesquisaPaginadaDTO(0, 5));
+		resultado = genericSearchDAO.list(BolsaCorretoraCorretor.class, pesquisa, new PagedSearchNavigation(0, 5));
 		assertNull(genericSearchDAO.getSingleResult(BolsaCorretoraCorretor.class, pesquisa));
 		assertEquals(0, resultado.size());
 		assertEquals(0, genericSearchDAO.size(BolsaCorretoraCorretor.class, pesquisa));
@@ -276,55 +276,55 @@ public class GenericSearchDAOTest extends AbstractTransactionalJUnit4SpringConte
 		PesquisaProfissionalDTO dto = new PesquisaProfissionalDTO();
 		dto.setInicio(getTime("21:00"));
 		dto.setFim(getTime("22:00"));
-		List<Profissional> resultado = genericSearchDAO.list(Profissional.class, dto, new PesquisaPaginadaDTO(0, 0));
+		List<Profissional> resultado = genericSearchDAO.list(Profissional.class, dto, new PagedSearchNavigation(0, 0));
 		assertTrue(resultado.isEmpty());
 		assertEquals(0, genericSearchDAO.size(Profissional.class, dto));
 
 		dto = new PesquisaProfissionalDTO();
 		dto.setInicio(getTime("19:00"));
 		dto.setFim(getTime("20:00"));
-		resultado = genericSearchDAO.list(Profissional.class, dto, new PesquisaPaginadaDTO(0, 0));
+		resultado = genericSearchDAO.list(Profissional.class, dto, new PagedSearchNavigation(0, 0));
 		assertEquals(1, resultado.size());
 		assertEquals(1, genericSearchDAO.size(Profissional.class, dto));
 		assertEquals("Sergio", resultado.get(0).getNome());
 
 		dto = new PesquisaProfissionalDTO();
-		resultado = genericSearchDAO.list(Profissional.class, dto, new PesquisaPaginadaDTO(0, 0));
+		resultado = genericSearchDAO.list(Profissional.class, dto, new PagedSearchNavigation(0, 0));
 		assertEquals(2, resultado.size());
 
 		dto = new PesquisaProfissionalDTO();
 		dto.setRegiao(regiao2);
-		resultado = genericSearchDAO.list(Profissional.class, dto, new PesquisaPaginadaDTO(0, 0));
+		resultado = genericSearchDAO.list(Profissional.class, dto, new PagedSearchNavigation(0, 0));
 		assertEquals(1, resultado.size());
 		assertEquals("João", resultado.get(0).getNome());
 
 		dto = new PesquisaProfissionalDTO();
 		dto.setCurso(curso1);
-		resultado = genericSearchDAO.list(Profissional.class, dto, new PesquisaPaginadaDTO(0, 0));
+		resultado = genericSearchDAO.list(Profissional.class, dto, new PagedSearchNavigation(0, 0));
 		assertEquals(1, resultado.size());
 		assertEquals("Sergio", resultado.get(0).getNome());
 
 		dto = new PesquisaProfissionalDTO();
 		dto.setDisciplina(disciplina2);
-		resultado = genericSearchDAO.list(Profissional.class, dto, new PesquisaPaginadaDTO(0, 0));
+		resultado = genericSearchDAO.list(Profissional.class, dto, new PagedSearchNavigation(0, 0));
 		assertEquals(1, resultado.size());
 		assertEquals("João", resultado.get(0).getNome());
 
 		dto = new PesquisaProfissionalDTO();
 		dto.setDisciplina(disciplina1);
-		resultado = genericSearchDAO.list(Profissional.class, dto, new PesquisaPaginadaDTO(0, 0));
+		resultado = genericSearchDAO.list(Profissional.class, dto, new PagedSearchNavigation(0, 0));
 		assertEquals(1, resultado.size());
 		assertEquals("Sergio", resultado.get(0).getNome());
 
 		dto = new PesquisaProfissionalDTO();
 		dto.setDiaSemana(Calendar.SATURDAY);
-		resultado = genericSearchDAO.list(Profissional.class, dto, new PesquisaPaginadaDTO(0, 0));
+		resultado = genericSearchDAO.list(Profissional.class, dto, new PagedSearchNavigation(0, 0));
 		assertEquals(1, resultado.size());
 		assertEquals("João", resultado.get(0).getNome());
 
 		dto = new PesquisaProfissionalDTO();
 		dto.setTelefones("334634522");
-		resultado = genericSearchDAO.list(Profissional.class, dto, new PesquisaPaginadaDTO(0, 0));
+		resultado = genericSearchDAO.list(Profissional.class, dto, new PagedSearchNavigation(0, 0));
 		assertEquals(1, resultado.size());
 		assertEquals("Sergio", resultado.get(0).getNome());
 	}

@@ -52,7 +52,7 @@ public class GenericSearchDAO extends AbstractDao {
 	 * @return
 	 */
 	public <T extends Serializable> T getSingleResult(Class<T> entityClass, Serializable parametros) {
-		List<T> resultado = list(entityClass, parametros, new PesquisaPaginadaDTO(NumberUtils.INTEGER_ZERO, NumberUtils.INTEGER_ONE));
+		List<T> resultado = list(entityClass, parametros, new PagedSearchNavigation(NumberUtils.INTEGER_ZERO, NumberUtils.INTEGER_ONE));
 		if (resultado.isEmpty()) {
 			return null;
 		}
@@ -67,7 +67,7 @@ public class GenericSearchDAO extends AbstractDao {
 	 * @return
 	 */
 	public <T extends Serializable> List<T> list(Class<T> entityClass, Serializable parametros) {
-		return list(entityClass, parametros, new PesquisaPaginadaDTO(NumberUtils.INTEGER_ZERO, NumberUtils.INTEGER_ZERO));
+		return list(entityClass, parametros, new PagedSearchNavigation(NumberUtils.INTEGER_ZERO, NumberUtils.INTEGER_ZERO));
 	}
 
 	/**
@@ -78,7 +78,7 @@ public class GenericSearchDAO extends AbstractDao {
 	 * @param pesquisa
 	 * @return
 	 */
-	public <T extends Serializable> List<T> list(Class<T> entityClass, Serializable parametros, PesquisaPaginadaDTO pesquisa) {
+	public <T extends Serializable> List<T> list(Class<T> entityClass, Serializable parametros, PagedSearchNavigation pesquisa) {
 
 		CriteriaBuilder cb = criteriaBuilder();
 		CriteriaQuery<?> criteria;
@@ -113,7 +113,7 @@ public class GenericSearchDAO extends AbstractDao {
 	 * @param criteria
 	 * @param from
 	 */
-	private <T extends Serializable> void processSorting(PesquisaPaginadaDTO pesquisa, Class<T> entityType, CriteriaQuery<?> criteria, Root<T> from) {
+	private <T extends Serializable> void processSorting(PagedSearchNavigation pesquisa, Class<T> entityType, CriteriaQuery<?> criteria, Root<T> from) {
 		if (StringUtils.isNotBlank(pesquisa.getSortProperty())) {
 			CriteriaBuilder cb = criteriaBuilder();
 
