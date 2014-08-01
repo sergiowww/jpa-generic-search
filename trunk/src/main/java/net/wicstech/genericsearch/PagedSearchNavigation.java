@@ -16,7 +16,7 @@ import java.io.Serializable;
  * @author sergio.oliveira
  * 
  */
-public class PesquisaPaginadaDTO implements Serializable {
+public class PagedSearchNavigation implements Serializable {
 
 	private static final long serialVersionUID = 8474328976965592450L;
 
@@ -39,7 +39,7 @@ public class PesquisaPaginadaDTO implements Serializable {
 	 */
 	private boolean ascending;
 
-	public PesquisaPaginadaDTO(long first, long count) {
+	public PagedSearchNavigation(long first, long count) {
 		super();
 		this.first = first;
 		this.count = count;

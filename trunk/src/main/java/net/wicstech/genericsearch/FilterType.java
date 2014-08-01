@@ -15,12 +15,24 @@ package net.wicstech.genericsearch;
  * 
  */
 public enum FilterType {
+	/**
+	 * Realiza um like case insensitive.
+	 */
 	ILIKE,
 
+	/**
+	 * Equals outro parâmetro.
+	 */
 	EQUALS,
 
+	/**
+	 * Maior que ou igual.
+	 */
 	GREATER_THAN_OR_EQUAL,
 
+	/**
+	 * Menor que ou igual.
+	 */
 	LESS_THAN_OR_EQUAL,
 
 	/**
