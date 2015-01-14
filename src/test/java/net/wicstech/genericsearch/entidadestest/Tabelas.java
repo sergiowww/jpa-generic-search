@@ -21,4 +21,5 @@ public interface Tabelas {
 	String TABELA_DISCIPLINA = "DIS_DISCIPLINA";
 	String TABELA_REGIAO = "REG_REGIAO";
 	String TABELA_SERIEANOCURSO = "SEA_SERIE_ANO_CURSO";
+	String TABELA_ENTIDADE_TIPO = "entidade_tipo";
 }

@@ -23,5 +23,10 @@ import java.lang.annotation.Target;
 @Target(ElementType.TYPE)
 public @interface SelectFields {
 
+	/**
+	 * Propriedades da entidade que deverão ser selecionadas.
+	 * 
+	 * @return
+	 */
 	String[] value();
 }

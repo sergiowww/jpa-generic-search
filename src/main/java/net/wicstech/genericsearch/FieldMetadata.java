@@ -1,3 +1,11 @@
+/*
+ * Copyright (c) Companhia Nacional de Abastecimento - Conab
+ *
+ * Este software é confidencial e propriedade da Conab.
+ * Não é permitida sua distribuição ou divulgação do seu conteúdo sem
+ * expressa autorização da Conab.
+ * Este arquivo contém informações proprietárias.
+ */
 package net.wicstech.genericsearch;
 
 import java.util.Set;
@@ -31,7 +39,7 @@ class FieldMetadata {
 	private final String[] entityProperty;
 	private FilterParameter filterParameter;
 	private String searchObjectFieldName;
-	private Metamodel metamodel;
+	private final Metamodel metamodel;
 	private ConfigurablePropertyAccessor wrapper;
 
 	public FieldMetadata(Metamodel metamodel, Class<?> entityType, Root<?> from, String... entityProperty) {
@@ -42,9 +50,12 @@ class FieldMetadata {
 		this.metamodel = metamodel;
 	}
 
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings("PMD.ConfusingTernary")
 	private PropertyFromClause getPropertyFrom(String propertyPath) {
+		// CHECKSTYLE:OFF
+		@SuppressWarnings("unchecked")
 		From<Object, Object> currentFrom = (From<Object, Object>) from;
+		// CHECKSTYLE:ON
 		String[] properties = propertyPath.split(SPLIT_NO_PONTO);
 		Class<?> currentEntityType = entityType;
 		int ultimoIndice = properties.length - NumberUtils.INTEGER_ONE;
@@ -56,9 +67,11 @@ class FieldMetadata {
 			boolean isCollection = attribute.isCollection();
 			if (attribute.getPersistentAttributeType().equals(Attribute.PersistentAttributeType.EMBEDDED)) {
 				property = StringUtils.join(properties, PONTO, ArrayUtils.indexOf(properties, property), properties.length);
+				// CHECKSTYLE:OFF
 				indice = ultimoIndice;
 			}
 
+			// CHECKSTYLE:OFF
 			if (indice != ultimoIndice) {
 				currentFrom = createJoin(property, currentFrom);
 				currentEntityType = getTypeOrListType(attribute);
@@ -67,6 +80,7 @@ class FieldMetadata {
 			} else {
 				return new PropertyFromClause(currentFrom, property);
 			}
+			// CHECKSTYLE:ON
 		}
 		throw new IllegalArgumentException("Nenhuma propriedade informada");
 	}
@@ -75,7 +89,9 @@ class FieldMetadata {
 		return this.<Y> getPath(getPropertyFrom(propertyPath));
 	}
 
+	// CHECKSTYLE:OFF
 	@SuppressWarnings("unchecked")
+	// CHECKSTYLE:ON
 	private <Y> Path<Y> getPath(PropertyFromClause sourceInformation) {
 		String nestedPropertiesToGet = sourceInformation.getNestedPropertiesToGet();
 		if (nestedPropertiesToGet == null) {
@@ -104,7 +120,9 @@ class FieldMetadata {
 	 * @param currentFrom
 	 * @return
 	 */
-	@SuppressWarnings("unchecked")
+	// CHECKSTYLE:OFF
+	@SuppressWarnings({"unchecked", "PMD.UnusedPrivateMethod"})
+	// CHECKSTYLE:ON
 	private From<Object, Object> createJoin(String propertyName, From<Object, Object> currentFrom) {
 		Set<Join<Object, ?>> joins = currentFrom.getJoins();
 		for (Join<Object, ?> join : joins) {
@@ -131,6 +149,7 @@ class FieldMetadata {
 		return attribute.getJavaType();
 	}
 
+	@SuppressWarnings("PMD.MethodReturnsInternalArray")
 	public String[] getEntityProperty() {
 		return entityProperty;
 	}
@@ -166,10 +185,12 @@ class FieldMetadata {
 	 * 
 	 */
 	private class PropertyFromClause {
-		private From<Object, Object> currentFrom;
-		private String nestedPropertiesToGet;
+		private final From<Object, Object> currentFrom;
+		private final String nestedPropertiesToGet;
 
 		/**
+		 * Construtor.
+		 * 
 		 * @param currentFrom
 		 * @param nestedPropertiesToGet
 		 */
@@ -179,16 +200,10 @@ class FieldMetadata {
 			this.nestedPropertiesToGet = nestedPropertiesToGet;
 		}
 
-		/**
-		 * @return the currentFrom
-		 */
 		public From<Object, Object> getCurrentFrom() {
 			return this.currentFrom;
 		}
 
-		/**
-		 * @return the nestedPropertiesToGet
-		 */
 		public String getNestedPropertiesToGet() {
 			return this.nestedPropertiesToGet;
 		}

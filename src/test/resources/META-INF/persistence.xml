@@ -16,5 +16,6 @@
 		<class>net.wicstech.genericsearch.entidadestest.Profissional</class>
 		<class>net.wicstech.genericsearch.entidadestest.Regiao</class>
 		<class>net.wicstech.genericsearch.entidadestest.SerieAnoCurso</class>
+		<class>net.wicstech.genericsearch.entidadestest.EntidadeTipo</class>
 	</persistence-unit>
 </persistence>
