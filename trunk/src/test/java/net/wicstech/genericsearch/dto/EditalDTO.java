@@ -5,6 +5,7 @@ import java.util.Date;
 
 import net.wicstech.genericsearch.FilterParameter;
 import net.wicstech.genericsearch.FilterType;
+import net.wicstech.genericsearch.entidadestest.Edital;
 
 /**
  * Entidade de teste.
@@ -20,6 +21,9 @@ public class EditalDTO implements Serializable {
 
 	@FilterParameter(value = FilterType.LESS_THAN_OR_EQUAL, entityProperty = "dataLeilao")
 	private Date dataFim;
+
+	@FilterParameter(FilterType.SCAN_FILTERS_INSIDE_THIS)
+	private Edital edital;
 
 	/**
 	 * @return the dataInicio
@@ -49,6 +53,14 @@ public class EditalDTO implements Serializable {
 	 */
 	public void setDataFim(Date dataFim) {
 		this.dataFim = dataFim;
+	}
+
+	public Edital getEdital() {
+		return edital;
+	}
+
+	public void setEdital(Edital edital) {
+		this.edital = edital;
 	}
 
 }

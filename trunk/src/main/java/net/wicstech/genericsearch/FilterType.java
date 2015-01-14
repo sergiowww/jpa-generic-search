@@ -10,20 +10,20 @@ package net.wicstech.genericsearch;
 
 /**
  * Tipos de filtro.
- * 
+ *
  * @author Sergio
- * 
+ *
  */
 public enum FilterType {
-	/**
-	 * Realiza um like case insensitive.
-	 */
-	ILIKE,
-
 	/**
 	 * Equals outro parâmetro.
 	 */
 	EQUALS,
+
+	/**
+	 * Not equals um determinado parâmetro.
+	 */
+	NOT_EQUALS,
 
 	/**
 	 * Maior que ou igual.
@@ -31,9 +31,19 @@ public enum FilterType {
 	GREATER_THAN_OR_EQUAL,
 
 	/**
+	 * Realiza um like case insensitive.
+	 */
+	ILIKE,
+
+	/**
 	 * Menor que ou igual.
 	 */
 	LESS_THAN_OR_EQUAL,
+
+	/**
+	 * Realiza um like com padrão exatamente igual ao passado pelo parâmetro.
+	 */
+	LIKE_EXACT,
 
 	/**
 	 * Rastreia as propriedades anotadas dentro deste campo.

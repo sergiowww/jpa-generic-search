@@ -32,7 +32,7 @@ import net.wicstech.genericsearch.FilterType;
 
 /**
  * The persistent class for the tb_corretora database table.
- * 
+ *
  */
 @Entity
 @Table(name = Tabelas.TABELA_CORRETORA)
@@ -40,12 +40,6 @@ import net.wicstech.genericsearch.FilterType;
 public class Corretora implements Serializable {
 
 	private static final long serialVersionUID = 7648574683264712564L;
-
-	@Id
-	@GeneratedValue(strategy = GenerationType.AUTO)
-	@Column(name = "id_corretora", unique = true, nullable = false)
-	@FilterParameter(FilterType.EQUALS)
-	private Long id;
 
 	@Column(nullable = false, unique = true, length = 14)
 	@FilterParameter(FilterType.EQUALS)
@@ -55,13 +49,11 @@ public class Corretora implements Serializable {
 	@Column(name = "data_termino_suspensao")
 	private Date dataTerminoSuspensao;
 
-	// bi-directional many-to-one association to SituacaoCorretora
-	@ManyToOne
-	@JoinColumn(name = "id_situacao_corretora", nullable = false)
-	private SituacaoCorretorCorretora situacaoCorretorCorretora;
-
-	@Column(name = "nome_responsavel", length = 100)
-	private String nomeResponsavel;
+	@Id
+	@GeneratedValue(strategy = GenerationType.AUTO)
+	@Column(name = "id_corretora", unique = true, nullable = false)
+	@FilterParameter(FilterType.EQUALS)
+	private Long id;
 
 	// bi-directional many-to-one association to BolsaCorretoraCorretor
 	@OneToMany(mappedBy = "corretora", cascade = CascadeType.ALL, orphanRemoval = true)
@@ -69,64 +61,17 @@ public class Corretora implements Serializable {
 	// {"listaBolsaCorretoraCorretor"})
 	private List<BolsaCorretoraCorretor> listaBolsaCorretoraCorretor;
 
-	public Long getId() {
-		return this.id;
-	}
+	@Column(name = "nome_responsavel", length = 100)
+	@FilterParameter(FilterType.LIKE_EXACT)
+	private String nomeResponsavel;
 
-	public void setId(Long idCorretora) {
-		this.id = idCorretora;
-	}
-
-	public String getCnpj() {
-		return this.cnpj;
-	}
-
-	public void setCnpj(String cnpj) {
-		this.cnpj = cnpj;
-	}
-
-	public Date getDataTerminoSuspensao() {
-		return this.dataTerminoSuspensao;
-	}
-
-	public void setDataTerminoSuspensao(Date dataTerminoSuspensao) {
-		this.dataTerminoSuspensao = dataTerminoSuspensao;
-	}
-
-	public SituacaoCorretorCorretora getSituacaoCorretorCorretora() {
-		return this.situacaoCorretorCorretora;
-	}
-
-	public void setSituacaoCorretorCorretora(SituacaoCorretorCorretora situacaoCorretorCorretora) {
-		this.situacaoCorretorCorretora = situacaoCorretorCorretora;
-	}
-
-	public String getNomeResponsavel() {
-		return this.nomeResponsavel;
-	}
-
-	public void setNomeResponsavel(String nomeResponsavel) {
-		this.nomeResponsavel = nomeResponsavel;
-	}
-
-	public List<BolsaCorretoraCorretor> getListaBolsaCorretoraCorretor() {
-		return this.listaBolsaCorretoraCorretor;
-	}
-
-	public void setListaBolsaCorretoraCorretor(List<BolsaCorretoraCorretor> listaBolsaCorretoraCorretor) {
-		this.listaBolsaCorretoraCorretor = listaBolsaCorretoraCorretor;
-	}
+	// bi-directional many-to-one association to SituacaoCorretora
+	@ManyToOne
+	@JoinColumn(name = "id_situacao_corretora", nullable = false)
+	private SituacaoCorretorCorretora situacaoCorretorCorretora;
 
 	@Override
-	public int hashCode() {
-		final int prime = 31;
-		int result = 1;
-		result = prime * result + ((id == null) ? 0 : id.hashCode());
-		return result;
-	}
-
-	@Override
-	public boolean equals(Object obj) {
+	public boolean equals(final Object obj) {
 		if (this == obj) {
 			return true;
 		}
@@ -136,15 +81,71 @@ public class Corretora implements Serializable {
 		if (!(obj instanceof Corretora)) {
 			return false;
 		}
-		Corretora other = (Corretora) obj;
-		if (id == null) {
+		final Corretora other = (Corretora) obj;
+		if (this.id == null) {
 			if (other.id != null) {
 				return false;
 			}
-		} else if (!id.equals(other.id)) {
+		} else if (!this.id.equals(other.id)) {
 			return false;
 		}
 		return true;
+	}
+
+	public String getCnpj() {
+		return this.cnpj;
+	}
+
+	public Date getDataTerminoSuspensao() {
+		return this.dataTerminoSuspensao;
+	}
+
+	public Long getId() {
+		return this.id;
+	}
+
+	public List<BolsaCorretoraCorretor> getListaBolsaCorretoraCorretor() {
+		return this.listaBolsaCorretoraCorretor;
+	}
+
+	public String getNomeResponsavel() {
+		return this.nomeResponsavel;
+	}
+
+	public SituacaoCorretorCorretora getSituacaoCorretorCorretora() {
+		return this.situacaoCorretorCorretora;
+	}
+
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + ((this.id == null) ? 0 : this.id.hashCode());
+		return result;
+	}
+
+	public void setCnpj(final String cnpj) {
+		this.cnpj = cnpj;
+	}
+
+	public void setDataTerminoSuspensao(final Date dataTerminoSuspensao) {
+		this.dataTerminoSuspensao = dataTerminoSuspensao;
+	}
+
+	public void setId(final Long idCorretora) {
+		this.id = idCorretora;
+	}
+
+	public void setListaBolsaCorretoraCorretor(final List<BolsaCorretoraCorretor> listaBolsaCorretoraCorretor) {
+		this.listaBolsaCorretoraCorretor = listaBolsaCorretoraCorretor;
+	}
+
+	public void setNomeResponsavel(final String nomeResponsavel) {
+		this.nomeResponsavel = nomeResponsavel;
+	}
+
+	public void setSituacaoCorretorCorretora(final SituacaoCorretorCorretora situacaoCorretorCorretora) {
+		this.situacaoCorretorCorretora = situacaoCorretorCorretora;
 	}
 
 }

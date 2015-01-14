@@ -39,68 +39,47 @@ public class PagedSearchNavigation implements Serializable {
 	 */
 	private boolean ascending;
 
+	/**
+	 * 
+	 * Construtor da consulta paginada, o primeiro registro e o count com o máximo de registros.
+	 *
+	 * @param first
+	 * @param count
+	 */
 	public PagedSearchNavigation(long first, long count) {
 		super();
 		this.first = first;
 		this.count = count;
 	}
 
-	/**
-	 * @return the first
-	 */
 	public long getFirst() {
 		return first;
 	}
 
-	/**
-	 * @param first
-	 *            the first to set
-	 */
 	public void setFirst(long first) {
 		this.first = first;
 	}
 
-	/**
-	 * @return the count
-	 */
 	public long getCount() {
 		return count;
 	}
 
-	/**
-	 * @param count
-	 *            the count to set
-	 */
 	public void setCount(long count) {
 		this.count = count;
 	}
 
-	/**
-	 * @return the sortProperty
-	 */
 	public String getSortProperty() {
 		return sortProperty;
 	}
 
-	/**
-	 * @param sortProperty
-	 *            the sortProperty to set
-	 */
 	public void setSortProperty(String sortProperty) {
 		this.sortProperty = sortProperty;
 	}
 
-	/**
-	 * @return the ascending
-	 */
 	public boolean isAscending() {
 		return ascending;
 	}
 
-	/**
-	 * @param ascending
-	 *            the ascending to set
-	 */
 	public void setAscending(boolean ascending) {
 		this.ascending = ascending;
 	}

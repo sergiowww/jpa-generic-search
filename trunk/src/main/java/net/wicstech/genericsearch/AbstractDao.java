@@ -26,9 +26,9 @@ import org.springframework.beans.PropertyAccessorFactory;
 
 /**
  * Classe base para DAOs.
- * 
+ *
  * @author sergio.oliveira
- * 
+ *
  */
 @SuppressWarnings("PMD.AbstractClassWithoutAbstractMethod")
 public abstract class AbstractDao implements Serializable {
@@ -39,6 +39,17 @@ public abstract class AbstractDao implements Serializable {
 	private EntityManager entityManager;
 
 	/**
+	 * EntityManager.
+	 *
+	 * @return
+	 */
+	public EntityManager getEntityManager() {
+		return this.entityManager;
+	}
+
+	/**
+	 * Criteria builder.
+	 *
 	 * @see EntityManager#getCriteriaBuilder()
 	 * @return
 	 */
@@ -48,48 +59,51 @@ public abstract class AbstractDao implements Serializable {
 
 	/**
 	 * ILike predicate.
-	 * 
+	 *
 	 * @param pathSelecion
 	 * @param value
 	 * @return
 	 */
-	protected final Predicate ilikePredicate(Path<String> pathSelecion, String value) {
-		CriteriaBuilder cb = criteriaBuilder();
+	protected final Predicate ilikePredicate(final Path<String> pathSelecion, final String value) {
+		final CriteriaBuilder cb = criteriaBuilder();
 		return cb.like(cb.lower(pathSelecion), '%' + value.toLowerCase() + '%');
 	}
 
 	/**
+	 * Like exact predicate.
+	 *
+	 * @param pathSelecion
+	 * @param pattern
+	 * @return
+	 */
+	protected final Predicate likeExactPredicate(final Path<String> pathSelecion, final String pattern) {
+		final CriteriaBuilder cb = criteriaBuilder();
+		return cb.like(cb.lower(pathSelecion), pattern);
+	}
+
+	/**
 	 * Listar uma tupla como instâncias da classe targetClass.
-	 * 
+	 *
 	 * @param resultList
 	 * @param targetClass
 	 * @return
 	 */
-	protected final <O> List<O> listTupleAs(List<Tuple> resultList, Class<O> targetClass) {
-		List<O> retorno = new ArrayList<O>();
+	protected final <O> List<O> listTupleAs(final List<Tuple> resultList, final Class<O> targetClass) {
+		final List<O> retorno = new ArrayList<O>();
 
-		for (Tuple tuple : resultList) {
+		for (final Tuple tuple : resultList) {
 
-			O target = BeanUtils.instantiate(targetClass);
-			BeanWrapper wrapperTarget = PropertyAccessorFactory.forBeanPropertyAccess(target);
+			final O target = BeanUtils.instantiate(targetClass);
+			final BeanWrapper wrapperTarget = PropertyAccessorFactory.forBeanPropertyAccess(target);
 			wrapperTarget.setAutoGrowNestedPaths(true);
-			List<TupleElement<?>> elements = tuple.getElements();
-			for (TupleElement<?> tupleElement : elements) {
-				String property = tupleElement.getAlias();
-				Object value = tuple.get(tupleElement.getAlias());
+			final List<TupleElement<?>> elements = tuple.getElements();
+			for (final TupleElement<?> tupleElement : elements) {
+				final String property = tupleElement.getAlias();
+				final Object value = tuple.get(tupleElement.getAlias());
 				wrapperTarget.setPropertyValue(property, value);
 			}
 			retorno.add(target);
 		}
 		return retorno;
-	}
-
-	/**
-	 * EntityManager.
-	 * 
-	 * @return
-	 */
-	public EntityManager getEntityManager() {
-		return this.entityManager;
 	}
 }

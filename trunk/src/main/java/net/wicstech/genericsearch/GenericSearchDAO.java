@@ -11,9 +11,11 @@ package net.wicstech.genericsearch;
 import java.io.Serializable;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 
+import javax.persistence.NonUniqueResultException;
 import javax.persistence.Tuple;
 import javax.persistence.TypedQuery;
 import javax.persistence.criteria.CriteriaBuilder;
@@ -31,118 +33,117 @@ import org.apache.commons.lang3.math.NumberUtils;
 import org.springframework.beans.ConfigurablePropertyAccessor;
 import org.springframework.beans.PropertyAccessorFactory;
 import org.springframework.stereotype.Repository;
+import org.springframework.util.CollectionUtils;
 
 /**
  * Dao para busca criterizada.
- * 
+ *
  * @author sergio.oliveira
- * 
+ *
  */
 @Repository("genericSearchDAO")
+// CHECKSTYLE:OFF
 @SuppressWarnings("unchecked")
+// CHECKSTYLE:ON
 public class GenericSearchDAO extends AbstractDao {
 
 	private static final long serialVersionUID = 2858834138761219160L;
 
 	/**
 	 * Retornar um único resultado.
-	 * 
+	 *
 	 * @param entityClass
 	 * @param parametros
 	 * @return
 	 */
-	public <T extends Serializable> T getSingleResult(Class<T> entityClass, Serializable parametros) {
-		List<T> resultado = list(entityClass, parametros, new PagedSearchNavigation(NumberUtils.INTEGER_ZERO, NumberUtils.INTEGER_ONE));
-		if (resultado.isEmpty()) {
+	public <T extends Serializable> T getSingleResult(final Class<T> entityClass, final Serializable parametros) {
+		// Verificar se existe mais de um registro e tratar como não registro único.
+		final List<T> resultado = list(entityClass, parametros, new PagedSearchNavigation(NumberUtils.INTEGER_ZERO, 2));
+		if (CollectionUtils.isEmpty(resultado)) {
 			return null;
+		} else if (resultado.size() > NumberUtils.INTEGER_ONE) {
+			throw new NonUniqueResultException("A consulta não retornou um resultado único: " + resultado.size());
 		}
 		return resultado.get(NumberUtils.INTEGER_ZERO);
 	}
 
 	/**
 	 * Listar todas as ocorrências sem paginação.
-	 * 
+	 *
 	 * @param entityClass
 	 * @param parametros
 	 * @return
 	 */
-	public <T extends Serializable> List<T> list(Class<T> entityClass, Serializable parametros) {
+	public <T extends Serializable> List<T> list(final Class<T> entityClass, final Serializable parametros) {
 		return list(entityClass, parametros, new PagedSearchNavigation(NumberUtils.INTEGER_ZERO, NumberUtils.INTEGER_ZERO));
 	}
 
 	/**
 	 * Listar resultado com paginação de resultados.
-	 * 
+	 *
 	 * @param entityClass
 	 * @param parametros
 	 * @param pesquisa
 	 * @return
 	 */
-	public <T extends Serializable> List<T> list(Class<T> entityClass, Serializable parametros, PagedSearchNavigation pesquisa) {
+	public <T extends Serializable> List<T> list(final Class<T> entityClass, final Serializable parametros, final PagedSearchNavigation pesquisa) {
 
-		CriteriaBuilder cb = criteriaBuilder();
+		final CriteriaBuilder cb = criteriaBuilder();
 		CriteriaQuery<?> criteria;
 
-		boolean modoSeletivo = parametros.getClass().isAnnotationPresent(SelectFields.class);
+		final boolean modoSeletivo = parametros.getClass().isAnnotationPresent(SelectFields.class);
 		if (modoSeletivo) {
 			criteria = cb.createTupleQuery();
 		} else {
 			criteria = cb.createQuery(entityClass);
 		}
 
-		Root<T> from = criteria.from(entityClass);
+		final Root<T> from = criteria.from(entityClass);
 
 		processFilters(parametros, entityClass, criteria, from);
 
 		processSorting(pesquisa, entityClass, criteria, from);
-		long count = pesquisa.getCount();
-		long first = pesquisa.getFirst();
+		final long count = pesquisa.getCount();
+		final long first = pesquisa.getFirst();
 		if (modoSeletivo) {
 			processSelections(parametros, entityClass, criteria, from);
 			return listTuple((CriteriaQuery<Tuple>) criteria, first, count);
 		}
-		TypedQuery<T> query = (TypedQuery<T>) createQuery(criteria, first, count);
+		final TypedQuery<T> query = (TypedQuery<T>) createQuery(criteria, first, count);
 		return query.getResultList();
 	}
 
 	/**
-	 * Acrescentar a ordenação do resultado.
-	 * 
-	 * @param pesquisa
-	 * @param entityType
-	 * @param criteria
-	 * @param from
+	 * Contar a quantidade de registros de uma query.
+	 *
+	 * @param entityClass
+	 * @param parametros
+	 * @return
 	 */
-	private <T extends Serializable> void processSorting(PagedSearchNavigation pesquisa, Class<T> entityType, CriteriaQuery<?> criteria, Root<T> from) {
-		if (StringUtils.isNotBlank(pesquisa.getSortProperty())) {
-			CriteriaBuilder cb = criteriaBuilder();
-
-			FieldMetadata metadata = newFieldMetadata(entityType, from, pesquisa.getSortProperty());
-			Expression<?> expression = metadata.getPath(pesquisa.getSortProperty());
-			// CHECKSTYLE:OFF
-			criteria.orderBy(pesquisa.isAscending() ? cb.asc(expression) : cb.desc(expression));
-			// CHECKSTYLE:ON
+	public <T extends Serializable> long size(final Class<T> entityClass, final Serializable parametros) {
+		final CriteriaBuilder cb = criteriaBuilder();
+		final CriteriaQuery<Long> criteria = cb.createQuery(Long.class);
+		final Root<?> from = criteria.from(entityClass);
+		processFilters(parametros, entityClass, criteria, from);
+		if (criteria.isDistinct()) {
+			criteria.distinct(false);
+			criteria.select(cb.countDistinct(from));
+		} else {
+			criteria.select(cb.count(from));
 		}
+		return getSingleResultAs(criteria);
 	}
 
 	/**
-	 * Listar resultados com paginação.
-	 * 
+	 * Criar query.
+	 *
 	 * @param query
-	 * @param pesquisaDTO
+	 * @param first
+	 * @param count
 	 * @return
 	 */
-	private <I, O> List<O> listTuple(CriteriaQuery<Tuple> query, long first, long count) {
-
-		TypedQuery<Tuple> typedQuery = createQuery(query, first, count);
-
-		List<Tuple> resultList = typedQuery.getResultList();
-		Class<O> targetClass = (Class<O>) query.getRoots().iterator().next().getJavaType();
-		return listTupleAs(resultList, targetClass);
-	}
-
-	private <T> TypedQuery<T> createQuery(CriteriaQuery<T> query, long first, long count) {
-		TypedQuery<T> typedQuery = getEntityManager().createQuery(query);
+	private <T> TypedQuery<T> createQuery(final CriteriaQuery<T> query, final long first, final long count) {
+		final TypedQuery<T> typedQuery = getEntityManager().createQuery(query);
 		if (count > 0) {
 			typedQuery.setFirstResult((int) first);
 			typedQuery.setMaxResults((int) count);
@@ -151,60 +152,187 @@ public class GenericSearchDAO extends AbstractDao {
 	}
 
 	/**
-	 * Processar as seleções da consulta.
-	 * 
-	 * @param searchObject
-	 * @param entityType
-	 * @param criteria
-	 * @param from
+	 * Criar os filtros de restrição.
+	 *
+	 * @param path
+	 * @param filterValue
+	 * @param filterType
+	 * @return
 	 */
-	protected void processSelections(Serializable searchObject, Class<?> entityType, CriteriaQuery<?> criteria, Root<?> from) {
-		SelectFields selectFieldsAnnotation = searchObject.getClass().getAnnotation(SelectFields.class);
-		List<Selection<?>> selecoes = new ArrayList<Selection<?>>();
-		selectFields(entityType, from, selectFieldsAnnotation, selecoes);
+	// CHECKSTYLE:OFF
+	private <T> Predicate filterRestriction(final Path<T> path, final Object filterValue, final FilterType filterType) {
+		switch (filterType) {
+			case NOT_EQUALS:
+				return criteriaBuilder().notEqual(path, filterValue);
 
-		criteria.multiselect(selecoes);
+			case EQUALS:
+				return criteriaBuilder().equal(path, filterValue);
+
+			case ILIKE:
+				return ilikePredicate((Path<String>) path, (String) filterValue);
+
+			case LIKE_EXACT:
+				return likeExactPredicate((Path<String>) path, (String) filterValue);
+
+			case GREATER_THAN_OR_EQUAL:
+				return criteriaBuilder().greaterThanOrEqualTo((Path<Date>) path, (Date) filterValue);
+
+			case LESS_THAN_OR_EQUAL:
+				return criteriaBuilder().lessThanOrEqualTo((Path<Date>) path, (Date) filterValue);
+
+			default:
+				throw new IllegalArgumentException("FilterType " + filterType + " não reconhecido!");
+		}
+		// CHECKSTYLE:ON
 	}
 
 	/**
-	 * Selecionar campos da consulta.
-	 * 
+	 * Recuperar o caminho da propriedade de uma entidade.
+	 *
+	 * @param entityType
+	 *
+	 * @param field
+	 * @param filterParameter
+	 * @param parentEntityPath
+	 *
+	 * @return
+	 */
+	@SuppressWarnings("PMD.AvoidInstantiatingObjectsInLoops")
+	private String[] getEntityPropertyPath(final Class<?> entityType, final Field field, final FilterParameter filterParameter, final String[] parentEntityPath) {
+		if (field.getType() == entityType) {
+			return null;
+		}
+		String[] propertyPath = filterParameter.entityProperty();
+
+		if (ArrayUtils.isEmpty(propertyPath)) {
+			propertyPath = new String[] {field.getName()};
+		}
+
+		if (ArrayUtils.isNotEmpty(parentEntityPath)) {
+			final String parentProperty = parentEntityPath[NumberUtils.INTEGER_ZERO];
+			for (int i = 0; i < propertyPath.length; i++) {
+				propertyPath[i] = new StringBuilder(parentProperty).append(FieldMetadata.PONTO).append(propertyPath[i]).toString();
+			}
+		}
+		return propertyPath;
+	}
+
+	/**
+	 * Buscar metadados para serem filtrados na consulta.
+	 *
+	 * @param searchObject
 	 * @param entityType
 	 * @param from
-	 * @param selectFieldsAnnotation
-	 * @param selecoes
+	 * @param parentEntityPath
+	 * @return
 	 */
-	protected void selectFields(Class<?> entityType, Root<?> from, SelectFields selectFieldsAnnotation, List<Selection<?>> selecoes) {
-		String[] selectFields = selectFieldsAnnotation.value();
-		for (String nestedProperties : selectFields) {
-			FieldMetadata metadata = newFieldMetadata(entityType, from, nestedProperties);
-			Selection<Object> selection = metadata.getPath(nestedProperties).alias(nestedProperties);
-			selecoes.add(selection);
+	private List<FieldMetadata> getFieldMetadata(final Serializable searchObject, final Class<?> entityType, final Root<?> from, final String[] parentEntityPath) {
+		final List<FieldMetadata> fieldMetadata = new ArrayList<FieldMetadata>();
+		final Class<? extends Serializable> searchObjectClass = searchObject.getClass();
+		final List<Field> fields = getFields(searchObjectClass);
+		final ConfigurablePropertyAccessor wrapper = PropertyAccessorFactory.forDirectFieldAccess(searchObject);
+		for (final Field field : fields) {
+			if (field.isAnnotationPresent(FilterParameter.class)) {
+				final Object propertyValue = wrapper.getPropertyValue(field.getName());
+				// CHECKSTYLE:OFF
+				if (propertyValue != null) {
+					final FilterParameter filterParameter = field.getAnnotation(FilterParameter.class);
+					final String[] entityPropertyPath = getEntityPropertyPath(entityType, field, filterParameter, parentEntityPath);
+
+					if (FilterType.SCAN_FILTERS_INSIDE_THIS.equals(filterParameter.value())) {
+						if (propertyValue instanceof Serializable) {
+							fieldMetadata.addAll(getFieldMetadata((Serializable) propertyValue, entityType, from, entityPropertyPath));
+						} else {
+							throw new IllegalArgumentException("O campo " + field.getName() + " não é serializable, deveria ser!");
+						}
+					} else {
+						final FieldMetadata metadados = newFieldMetadata(entityType, from, entityPropertyPath);
+						metadados.setSearchObjectFieldName(field.getName());
+						metadados.setFilterParameter(filterParameter);
+						metadados.setWrapper(wrapper);
+						fieldMetadata.add(metadados);
+					}
+				}
+				// CHECKSTYLE:ON
+			}
 		}
+		return fieldMetadata;
+	}
+
+	private List<Field> getFields(Class<?> searchObjectClass) {
+		final List<Field> fields = new ArrayList<Field>();
+		while (searchObjectClass != Object.class) {
+			fields.addAll(Arrays.asList(searchObjectClass.getDeclaredFields()));
+			searchObjectClass = searchObjectClass.getSuperclass();
+		}
+
+		return fields;
+	}
+
+	/**
+	 * Lista o resultado do criteria query como um único resultado.
+	 *
+	 * @param <Y>
+	 * @param query
+	 * @return
+	 */
+	private <Y> Y getSingleResultAs(final CriteriaQuery<Y> query) {
+		final TypedQuery<Y> typedQuery = getEntityManager().createQuery(query);
+		return typedQuery.getSingleResult();
+	}
+
+	/**
+	 * Listar resultados com paginação.
+	 *
+	 * @param query
+	 * @param pesquisaDTO
+	 * @return
+	 */
+	private <I, O> List<O> listTuple(final CriteriaQuery<Tuple> query, final long first, final long count) {
+
+		final TypedQuery<Tuple> typedQuery = createQuery(query, first, count);
+
+		final List<Tuple> resultList = typedQuery.getResultList();
+		final Class<O> targetClass = (Class<O>) query.getRoots().iterator().next().getJavaType();
+		return listTupleAs(resultList, targetClass);
+	}
+
+	/**
+	 * Criar campo metadata.
+	 *
+	 * @param entityType
+	 * @param from
+	 * @param entityPropertyPath
+	 * @return
+	 */
+	private <T> FieldMetadata newFieldMetadata(final Class<T> entityType, final Root<?> from, final String... entityPropertyPath) {
+		final Metamodel metamodel = getEntityManager().getMetamodel();
+		return new FieldMetadata(metamodel, entityType, from, entityPropertyPath);
 	}
 
 	/**
 	 * Processar os filtros.
-	 * 
+	 *
 	 * @param searchObject
 	 * @param entityType
 	 * @param criteria
 	 * @param from
 	 */
-	private void processFilters(Serializable searchObject, Class<?> entityType, CriteriaQuery<?> criteria, Root<?> from) {
+	@SuppressWarnings("PMD.AvoidInstantiatingObjectsInLoops")
+	private void processFilters(final Serializable searchObject, final Class<?> entityType, final CriteriaQuery<?> criteria, final Root<?> from) {
 
-		List<FieldMetadata> metadados = getFieldMetadata(searchObject, entityType, from, null);
-		List<Predicate> predicates = new ArrayList<Predicate>();
-		for (FieldMetadata fieldMetadata : metadados) {
-			String[] entityProperty = fieldMetadata.getEntityProperty();
-			List<Predicate> orPredicates = new ArrayList<Predicate>();
-			for (String property : entityProperty) {
+		final List<FieldMetadata> metadados = getFieldMetadata(searchObject, entityType, from, null);
+		final List<Predicate> predicates = new ArrayList<Predicate>();
+		for (final FieldMetadata fieldMetadata : metadados) {
+			final String[] entityProperty = fieldMetadata.getEntityProperty();
+			final List<Predicate> orPredicates = new ArrayList<Predicate>();
+			for (final String property : entityProperty) {
 				if (fieldMetadata.isDistinct()) {
 					criteria.distinct(fieldMetadata.isDistinct());
 				}
-				Object filterValue = fieldMetadata.getPropertyValue();
-				Path<Object> restrictionProperty = fieldMetadata.getPath(property);
-				Predicate predicate = filterRestriction(restrictionProperty, filterValue, fieldMetadata.getFilterParameter().value());
+				final Object filterValue = fieldMetadata.getPropertyValue();
+				final Path<Object> restrictionProperty = fieldMetadata.getPath(property);
+				final Predicate predicate = filterRestriction(restrictionProperty, filterValue, fieldMetadata.getFilterParameter().value());
 				orPredicates.add(predicate);
 			}
 			if (orPredicates.size() > NumberUtils.INTEGER_ONE) {
@@ -218,111 +346,67 @@ public class GenericSearchDAO extends AbstractDao {
 		}
 	}
 
-	private Predicate[] toArray(List<Predicate> predicates) {
+	/**
+	 * Acrescentar a ordenação do resultado.
+	 *
+	 * @param pesquisa
+	 * @param entityType
+	 * @param criteria
+	 * @param from
+	 */
+	private <T extends Serializable> void processSorting(final PagedSearchNavigation pesquisa, final Class<T> entityType, final CriteriaQuery<?> criteria, final Root<T> from) {
+		if (StringUtils.isNotBlank(pesquisa.getSortProperty())) {
+			final CriteriaBuilder cb = criteriaBuilder();
+
+			final FieldMetadata metadata = newFieldMetadata(entityType, from, pesquisa.getSortProperty());
+			final Expression<?> expression = metadata.getPath(pesquisa.getSortProperty());
+			// CHECKSTYLE:OFF
+			criteria.orderBy(pesquisa.isAscending() ? cb.asc(expression) : cb.desc(expression));
+			// CHECKSTYLE:ON
+		}
+	}
+
+	/**
+	 * Transformar o resultado em array.
+	 *
+	 * @param predicates
+	 * @return
+	 */
+	private Predicate[] toArray(final List<Predicate> predicates) {
 		return predicates.toArray(new Predicate[predicates.size()]);
 	}
 
-	private <T> Predicate filterRestriction(Path<T> path, Object filterValue, FilterType filterType) {
-
-		if (FilterType.ILIKE.equals(filterType)) {
-			return ilikePredicate((Path<String>) path, (String) filterValue);
-		}
-		if (FilterType.LESS_THAN_OR_EQUAL.equals(filterType)) {
-			return criteriaBuilder().lessThanOrEqualTo((Path<Date>) path, (Date) filterValue);
-		}
-		if (FilterType.GREATER_THAN_OR_EQUAL.equals(filterType)) {
-			return criteriaBuilder().greaterThanOrEqualTo((Path<Date>) path, (Date) filterValue);
-		}
-		if (FilterType.EQUALS.equals(filterType)) {
-			return criteriaBuilder().equal(path, filterValue);
-		}
-		throw new IllegalArgumentException("FilterType " + filterType + " não reconhecido!");
-	}
-
 	/**
-	 * Buscar metadados para serem filtrados na consulta.
-	 * 
+	 * Processar as seleções da consulta.
+	 *
 	 * @param searchObject
 	 * @param entityType
+	 * @param criteria
 	 * @param from
-	 * @param parentEntityPath
-	 * @return
 	 */
-	private List<FieldMetadata> getFieldMetadata(Serializable searchObject, Class<?> entityType, Root<?> from, String[] parentEntityPath) {
-		List<FieldMetadata> fieldMetadata = new ArrayList<FieldMetadata>();
-		Class<? extends Serializable> searchObjectClass = searchObject.getClass();
-		Field[] fields = searchObjectClass.getDeclaredFields();
-		ConfigurablePropertyAccessor wrapper = PropertyAccessorFactory.forDirectFieldAccess(searchObject);
-		for (Field field : fields) {
-			if (field.isAnnotationPresent(FilterParameter.class)) {
-				Object propertyValue = wrapper.getPropertyValue(field.getName());
-				if (propertyValue != null) {
-					FilterParameter filterParameter = field.getAnnotation(FilterParameter.class);
-					String[] entityPropertyPath = getEntityPropertyPath(field, filterParameter, parentEntityPath);
+	protected void processSelections(final Serializable searchObject, final Class<?> entityType, final CriteriaQuery<?> criteria, final Root<?> from) {
+		final SelectFields selectFieldsAnnotation = searchObject.getClass().getAnnotation(SelectFields.class);
+		final List<Selection<?>> selecoes = new ArrayList<Selection<?>>();
+		selectFields(entityType, from, selectFieldsAnnotation, selecoes);
 
-					if (FilterType.SCAN_FILTERS_INSIDE_THIS.equals(filterParameter.value())) {
-						if (propertyValue instanceof Serializable) {
-							fieldMetadata.addAll(getFieldMetadata((Serializable) propertyValue, entityType, from, entityPropertyPath));
-						} else {
-							throw new IllegalArgumentException("O campo " + field.getName() + " não é serializable, deveria ser!");
-						}
-					} else {
-						FieldMetadata metadados = newFieldMetadata(entityType, from, entityPropertyPath);
-						metadados.setSearchObjectFieldName(field.getName());
-						metadados.setFilterParameter(filterParameter);
-						metadados.setWrapper(wrapper);
-						fieldMetadata.add(metadados);
-					}
-				}
-			}
-		}
-		return fieldMetadata;
-	}
-
-	private <T> FieldMetadata newFieldMetadata(Class<T> entityType, Root<?> from, String... entityPropertyPath) {
-		Metamodel metamodel = getEntityManager().getMetamodel();
-		return new FieldMetadata(metamodel, entityType, from, entityPropertyPath);
-	}
-
-	private String[] getEntityPropertyPath(Field field, FilterParameter filterParameter, String[] parentEntityPath) {
-		String[] propertyPath = filterParameter.entityProperty();
-		if (ArrayUtils.isEmpty(propertyPath)) {
-			propertyPath = new String[] {field.getName()};
-		}
-
-		if (ArrayUtils.isNotEmpty(parentEntityPath)) {
-			String parentProperty = parentEntityPath[NumberUtils.INTEGER_ZERO];
-			for (int i = 0; i < propertyPath.length; i++) {
-				propertyPath[i] = parentProperty + FieldMetadata.PONTO + propertyPath[i];
-			}
-		}
-		return propertyPath;
-	}
-
-	public <T extends Serializable> long size(Class<T> entityClass, Serializable parametros) {
-		CriteriaBuilder cb = criteriaBuilder();
-		CriteriaQuery<Long> criteria = cb.createQuery(Long.class);
-		Root<?> from = criteria.from(entityClass);
-		processFilters(parametros, entityClass, criteria, from);
-		if (criteria.isDistinct()) {
-			criteria.distinct(false);
-			criteria.select(cb.countDistinct(from));
-		} else {
-			criteria.select(cb.count(from));
-		}
-		return getSingleResultAs(criteria);
+		criteria.multiselect(selecoes);
 	}
 
 	/**
-	 * Lista o resultado do criteria query como um único resultado.
-	 * 
-	 * @param <Y>
-	 * @param query
-	 * @return
+	 * Selecionar campos da consulta.
+	 *
+	 * @param entityType
+	 * @param from
+	 * @param selectFieldsAnnotation
+	 * @param selecoes
 	 */
-	private <Y> Y getSingleResultAs(CriteriaQuery<Y> query) {
-		TypedQuery<Y> typedQuery = getEntityManager().createQuery(query);
-		return typedQuery.getSingleResult();
+	protected void selectFields(final Class<?> entityType, final Root<?> from, final SelectFields selectFieldsAnnotation, final List<Selection<?>> selecoes) {
+		final String[] selectFields = selectFieldsAnnotation.value();
+		for (final String nestedProperties : selectFields) {
+			final FieldMetadata metadata = newFieldMetadata(entityType, from, nestedProperties);
+			final Selection<Object> selection = metadata.getPath(nestedProperties).alias(nestedProperties);
+			selecoes.add(selection);
+		}
 	}
 
 }
