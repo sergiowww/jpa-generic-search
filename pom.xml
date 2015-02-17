@@ -82,13 +82,6 @@
 			<scope>test</scope>
 		</dependency>
 	</dependencies>
-	<distributionManagement>
-		<repository>
-			<id>conab</id>
-			<name>Conab Archiva</name>
-			<url>http://dfbsa40.conab.gov.br/archiva/repository/internal/</url>
-		</repository>
-	</distributionManagement>
 	<scm>
 		<url>https://jpa-generic-search.googlecode.com/svn/trunk/</url>
 	</scm>
