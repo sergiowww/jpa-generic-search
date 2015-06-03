@@ -21,6 +21,7 @@ import javax.persistence.TypedQuery;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Expression;
+import javax.persistence.criteria.JoinType;
 import javax.persistence.criteria.Path;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
@@ -42,9 +43,7 @@ import org.springframework.util.CollectionUtils;
  *
  */
 @Repository("genericSearchDAO")
-// CHECKSTYLE:OFF
 @SuppressWarnings("unchecked")
-// CHECKSTYLE:ON
 public class GenericSearchDAO extends AbstractDao {
 
 	private static final long serialVersionUID = 2858834138761219160L;
@@ -135,6 +134,39 @@ public class GenericSearchDAO extends AbstractDao {
 	}
 
 	/**
+	 * Processar as seleções da consulta.
+	 *
+	 * @param searchObject
+	 * @param entityType
+	 * @param criteria
+	 * @param from
+	 */
+	protected void processSelections(final Serializable searchObject, final Class<?> entityType, final CriteriaQuery<?> criteria, final Root<?> from) {
+		final SelectFields selectFieldsAnnotation = searchObject.getClass().getAnnotation(SelectFields.class);
+		final List<Selection<?>> selecoes = new ArrayList<Selection<?>>();
+		selectFields(entityType, from, selectFieldsAnnotation, selecoes);
+
+		criteria.multiselect(selecoes);
+	}
+
+	/**
+	 * Selecionar campos da consulta.
+	 *
+	 * @param entityType
+	 * @param from
+	 * @param selectFieldsAnnotation
+	 * @param selecoes
+	 */
+	protected void selectFields(final Class<?> entityType, final Root<?> from, final SelectFields selectFieldsAnnotation, final List<Selection<?>> selecoes) {
+		final String[] selectFields = selectFieldsAnnotation.value();
+		for (final String nestedProperties : selectFields) {
+			final FieldMetadata metadata = newFieldMetadata(entityType, from, nestedProperties);
+			final Selection<Object> selection = metadata.getPath(nestedProperties).alias(nestedProperties);
+			selecoes.add(selection);
+		}
+	}
+
+	/**
 	 * Criar query.
 	 *
 	 * @param query
@@ -159,31 +191,23 @@ public class GenericSearchDAO extends AbstractDao {
 	 * @param filterType
 	 * @return
 	 */
-	// CHECKSTYLE:OFF
 	private <T> Predicate filterRestriction(final Path<T> path, final Object filterValue, final FilterType filterType) {
 		switch (filterType) {
 			case NOT_EQUALS:
 				return criteriaBuilder().notEqual(path, filterValue);
-
 			case EQUALS:
 				return criteriaBuilder().equal(path, filterValue);
-
 			case ILIKE:
 				return ilikePredicate((Path<String>) path, (String) filterValue);
-
 			case LIKE_EXACT:
 				return likeExactPredicate((Path<String>) path, (String) filterValue);
-
 			case GREATER_THAN_OR_EQUAL:
 				return criteriaBuilder().greaterThanOrEqualTo((Path<Date>) path, (Date) filterValue);
-
 			case LESS_THAN_OR_EQUAL:
 				return criteriaBuilder().lessThanOrEqualTo((Path<Date>) path, (Date) filterValue);
-
 			default:
 				throw new IllegalArgumentException("FilterType " + filterType + " não reconhecido!");
 		}
-		// CHECKSTYLE:ON
 	}
 
 	/**
@@ -359,6 +383,7 @@ public class GenericSearchDAO extends AbstractDao {
 			final CriteriaBuilder cb = criteriaBuilder();
 
 			final FieldMetadata metadata = newFieldMetadata(entityType, from, pesquisa.getSortProperty());
+			metadata.setJoinType(JoinType.LEFT);
 			final Expression<?> expression = metadata.getPath(pesquisa.getSortProperty());
 			// CHECKSTYLE:OFF
 			criteria.orderBy(pesquisa.isAscending() ? cb.asc(expression) : cb.desc(expression));
@@ -374,39 +399,6 @@ public class GenericSearchDAO extends AbstractDao {
 	 */
 	private Predicate[] toArray(final List<Predicate> predicates) {
 		return predicates.toArray(new Predicate[predicates.size()]);
-	}
-
-	/**
-	 * Processar as seleções da consulta.
-	 *
-	 * @param searchObject
-	 * @param entityType
-	 * @param criteria
-	 * @param from
-	 */
-	protected void processSelections(final Serializable searchObject, final Class<?> entityType, final CriteriaQuery<?> criteria, final Root<?> from) {
-		final SelectFields selectFieldsAnnotation = searchObject.getClass().getAnnotation(SelectFields.class);
-		final List<Selection<?>> selecoes = new ArrayList<Selection<?>>();
-		selectFields(entityType, from, selectFieldsAnnotation, selecoes);
-
-		criteria.multiselect(selecoes);
-	}
-
-	/**
-	 * Selecionar campos da consulta.
-	 *
-	 * @param entityType
-	 * @param from
-	 * @param selectFieldsAnnotation
-	 * @param selecoes
-	 */
-	protected void selectFields(final Class<?> entityType, final Root<?> from, final SelectFields selectFieldsAnnotation, final List<Selection<?>> selecoes) {
-		final String[] selectFields = selectFieldsAnnotation.value();
-		for (final String nestedProperties : selectFields) {
-			final FieldMetadata metadata = newFieldMetadata(entityType, from, nestedProperties);
-			final Selection<Object> selection = metadata.getPath(nestedProperties).alias(nestedProperties);
-			selecoes.add(selection);
-		}
 	}
 
 }

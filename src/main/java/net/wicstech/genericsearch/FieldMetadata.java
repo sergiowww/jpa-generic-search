@@ -12,6 +12,7 @@ import java.util.Set;
 
 import javax.persistence.criteria.From;
 import javax.persistence.criteria.Join;
+import javax.persistence.criteria.JoinType;
 import javax.persistence.criteria.Path;
 import javax.persistence.criteria.Root;
 import javax.persistence.metamodel.Attribute;
@@ -40,6 +41,8 @@ class FieldMetadata {
 	private FilterParameter filterParameter;
 	private String searchObjectFieldName;
 	private final Metamodel metamodel;
+	private JoinType joinType = JoinType.INNER;
+
 	private ConfigurablePropertyAccessor wrapper;
 
 	public FieldMetadata(Metamodel metamodel, Class<?> entityType, Root<?> from, String... entityProperty) {
@@ -130,7 +133,7 @@ class FieldMetadata {
 				return (From<Object, Object>) join;
 			}
 		}
-		return currentFrom.join(propertyName);
+		return currentFrom.join(propertyName, joinType);
 	}
 
 	/**
@@ -172,6 +175,10 @@ class FieldMetadata {
 
 	public void setWrapper(ConfigurablePropertyAccessor wrapper) {
 		this.wrapper = wrapper;
+	}
+
+	public void setJoinType(JoinType joinType) {
+		this.joinType = joinType;
 	}
 
 	public Object getPropertyValue() {
