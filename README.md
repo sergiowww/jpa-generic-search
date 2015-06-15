@@ -83,7 +83,8 @@ public void testCategory() throws Exception {
 ```
 
 The scenario shown above is useful for most of the cases. 
-However, sometimes it's not possible to use the same entity as an object that contains search information like the aforementioned example. In that case, you can annotate another object and use it as a search object. The search object can be any POJO (plain old java object) class, there's no need to be an entity, but if the annotated field has a different name of the entity property, you should provide the annotation with a value for `entityProperty` that should have the correct property name to be used in the entity.
+However, sometimes it's not possible to use the same entity as an object that contains search information like the aforementioned example. In that case, you should be able to annotate another object and use it as a search object. The search object can be any POJO (plain old java object) class, there's no need to be an entity, but if the annotated field has a different name of the entity property, you should provide the annotation with a value for `entityProperty` that should have the correct property name to be used in the entity.
 
 Looking for more examples? See the test source code.
 The documentation it's currently under development, so be patient! As soon as possible I'll make it available more examples like this!
+Sergio linkedin.com/in/sergioeduardo
