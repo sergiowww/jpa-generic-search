@@ -30,6 +30,7 @@ import net.wicstech.genericsearch.entidadestest.TipoDocumento;
 
 import org.apache.commons.lang3.math.NumberUtils;
 import org.junit.Test;
+import org.springframework.test.annotation.Rollback;
 
 public class GenericSearchDAOTest extends AbstractJUnitTest {
 	private static final String CPF_TESTE1 = "123456";
@@ -39,6 +40,7 @@ public class GenericSearchDAOTest extends AbstractJUnitTest {
 	private static final String SITUACAO_INATIVO = "Descrição inativo";
 
 	@Test
+	@Rollback(false)
 	public void testCollections() throws Exception {
 		limparTabelas();
 		final SerieAnoCurso curso1 = new SerieAnoCurso();
@@ -135,6 +137,7 @@ public class GenericSearchDAOTest extends AbstractJUnitTest {
 	}
 
 	@Test
+	@Rollback(false)
 	public void testNotEquals() throws Exception {
 		limparTabelas();
 		EntidadeTipo ent1 = new EntidadeTipo();
@@ -158,6 +161,7 @@ public class GenericSearchDAOTest extends AbstractJUnitTest {
 	 * @throws Exception
 	 */
 	@Test
+	@Rollback(false)
 	public void testLikeEntidadeComoParametros() throws Exception {
 		limparTabelas();
 		final TipoDocumento tipoDocumento1 = new TipoDocumento();
@@ -200,6 +204,7 @@ public class GenericSearchDAOTest extends AbstractJUnitTest {
 	}
 
 	@Test
+	@Rollback(false)
 	public void testLikeExact() throws Exception {
 		limparTabelas();
 		prepararCarga("4569878", CPF_TESTE1, "Dono da corretora", SITUACAO_ATIVO);
@@ -213,6 +218,7 @@ public class GenericSearchDAOTest extends AbstractJUnitTest {
 	}
 
 	@Test
+	@Rollback(false)
 	public void testLikeNestedProperties() throws Exception {
 		limparTabelas();
 		prepararCarga("4569878", CPF_TESTE1, "Dono da corretora", SITUACAO_ATIVO);
@@ -239,6 +245,7 @@ public class GenericSearchDAOTest extends AbstractJUnitTest {
 	}
 
 	@Test
+	@Rollback(false)
 	public void testOrdenacao() throws Exception {
 		limparTabelas();
 		final SituacaoCorretorCorretora situacao1 = new SituacaoCorretorCorretora();
@@ -285,6 +292,7 @@ public class GenericSearchDAOTest extends AbstractJUnitTest {
 	}
 
 	@Test
+	@Rollback(false)
 	public void testSelection() throws Exception {
 		limparTabelas();
 		final SituacaoCorretorCorretora situacao = new SituacaoCorretorCorretora();
@@ -296,8 +304,7 @@ public class GenericSearchDAOTest extends AbstractJUnitTest {
 		assertNotNull(situacaoGravada);
 		assertEquals(assertTipo, situacaoGravada.getTipoSituacao());
 
-		final List<SituacaoCorretorCorretora> resultado = this.genericSearchDAO.list(SituacaoCorretorCorretora.class, new SituacaoCorretorCorretora(), new PagedSearchNavigation(0,
-				5));
+		final List<SituacaoCorretorCorretora> resultado = this.genericSearchDAO.list(SituacaoCorretorCorretora.class, new SituacaoCorretorCorretora(), new PagedSearchNavigation(0, 5));
 		assertEquals(1, resultado.size());
 		final SituacaoCorretorCorretora situacaoComSelecaoDeCampos = resultado.get(0);
 		assertNotNull(situacaoComSelecaoDeCampos.getId());
@@ -306,9 +313,7 @@ public class GenericSearchDAOTest extends AbstractJUnitTest {
 	}
 
 	private void gravarProfissional(final SerieAnoCurso curso1, final Regiao regiao1, final Disciplina disciplina, final String celular, final String telefone, final String email,
-			final boolean efetivo, final String nome,
-			final String horaInicio,
-			final String horaFim, final Integer day) throws ParseException {
+			final boolean efetivo, final String nome, final String horaInicio, final String horaFim, final Integer day) throws ParseException {
 		final Profissional profissional = new Profissional();
 		profissional.setCelular(celular);
 		profissional.setCelularOperadora("vivo");
