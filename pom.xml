@@ -83,6 +83,9 @@
 		</dependency>
 	</dependencies>
 	<scm>
-		<url>https://jpa-generic-search.googlecode.com/svn/trunk/</url>
+		<url>https://github.com/sergiowww/jpa-generic-search.git</url>
 	</scm>
+	<ciManagement>
+		<url>https://travis-ci.org/sergiowww/jpa-generic-search</url>
+	</ciManagement>
 </project>
