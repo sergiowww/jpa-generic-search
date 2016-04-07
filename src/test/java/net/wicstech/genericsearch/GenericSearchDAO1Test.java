@@ -10,7 +10,6 @@ import net.wicstech.genericsearch.entidadestest.Edital;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.test.annotation.Rollback;
-
 public class GenericSearchDAO1Test extends AbstractJUnitTest {
 
 	@Before

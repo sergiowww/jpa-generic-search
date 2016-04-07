@@ -40,7 +40,7 @@ public class GenericSearchDAOTest extends AbstractJUnitTest {
 	private static final String SITUACAO_INATIVO = "Descrição inativo";
 
 	@Test
-	@Rollback(false)
+	@Rollback(true)
 	public void testCollections() throws Exception {
 		limparTabelas();
 		final SerieAnoCurso curso1 = new SerieAnoCurso();
@@ -137,7 +137,7 @@ public class GenericSearchDAOTest extends AbstractJUnitTest {
 	}
 
 	@Test
-	@Rollback(false)
+	@Rollback(true)
 	public void testNotEquals() throws Exception {
 		limparTabelas();
 		EntidadeTipo ent1 = new EntidadeTipo();
